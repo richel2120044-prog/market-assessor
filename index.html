@@ -158,7 +158,7 @@ async function fetchWorldBankIndicator(iso, indicator, fallback = 0, normalize =
   }
 }
 
-// Replace fake EXAMPLE_BASE data fetch logic
+// Replace fake await loadCountryData data fetch logic
 async function loadCountryData(userCountries) {
   const results = [];
   for (const c of userCountries) {
@@ -168,16 +168,7 @@ async function loadCountryData(userCountries) {
   return results;
 }
 
-// const EXAMPLE_BASE = [
-  { name: "United States", iso: "US", population: 331, gdpPerCapita: 74000, internet: 92, political: 0.8, importEase: 0.85, urban: 82 },
-  { name: "Canada", iso: "CA", population: 38,  gdpPerCapita: 55000, internet: 91, political: 0.9, importEase: 0.88, urban: 82 },
-  { name: "India", iso: "IN", population: 1410, gdpPerCapita: 2500, internet: 55, political: 0.2, importEase: 0.45, urban: 35 },
-  { name: "Germany", iso: "DE", population: 83,  gdpPerCapita: 52000, internet: 90, political: 0.85, importEase: 0.9, urban: 77 },
-  { name: "Brazil", iso: "BR", population: 214, gdpPerCapita: 10000, internet: 75, political: 0.3, importEase: 0.6, urban: 88 },
-  { name: "Japan", iso: "JP", population: 125, gdpPerCapita: 49000, internet: 93, political: 0.9, importEase: 0.9, urban: 92 },
-  { name: "Nigeria", iso: "NG", population: 223, gdpPerCapita: 2200, internet: 45, political: 0.05, importEase: 0.35, urban: 52 },
-  { name: "Australia", iso: "AU", population: 26, gdpPerCapita: 62000, internet: 94, political: 0.92, importEase: 0.87, urban: 86 }
-];
+// /* Removed await loadCountryData fake data */
 
 // Global UI refs
 const productEl = document.getElementById('product');
@@ -399,20 +390,20 @@ let lastProductName = '';
 async function runScoringAndRender(productName, opts={}) {
   // opts: {recomputeSingle: idx} -> recompute only if needed using currentData
   statusEl.textContent = 'Computing…';
-  // parse countries input into array; match by name from EXAMPLE_BASE if possible
+  // parse countries input into array; match by name from await loadCountryData if possible
   const userCountries = countriesEl.value.split(',').map(s=>s.trim()).filter(Boolean);
   // Build currentData by mapping user list to example base; for mismatches, attempt best-effort fallback
   currentData = userCountries.map(cName => {
-    const found = EXAMPLE_BASE.find(b => b.name.toLowerCase() === cName.toLowerCase() || b.iso.toLowerCase() === cName.toLowerCase());
+    const found = await loadCountryData.find(b => b.name.toLowerCase() === cName.toLowerCase() || b.iso.toLowerCase() === cName.toLowerCase());
     if(found) return JSON.parse(JSON.stringify(found)); // copy
     // fallback: create minimal row with blanks
     return { name: cName, iso: cName, population: 0, gdpPerCapita:0, internet:0, political:0.5, importEase:0.5, urban:0.5 };
   });
 
   // if recomputeSingle: user updated inputs for one row, just recompute using existing currentData
-  // else: reset any missing fields to defaults if available from EXAMPLE_BASE
+  // else: reset any missing fields to defaults if available from await loadCountryData
   currentData = currentData.map(row => {
-    const base = EXAMPLE_BASE.find(b => b.name.toLowerCase() === row.name.toLowerCase() || b.iso.toLowerCase() === row.iso.toLowerCase());
+    const base = await loadCountryData.find(b => b.name.toLowerCase() === row.name.toLowerCase() || b.iso.toLowerCase() === row.iso.toLowerCase());
     if(base){
       // copy missing numeric fields from base if zero/empty
       return {
@@ -446,9 +437,9 @@ async function runScoringAndRender(productName, opts={}) {
   // compute
   const scored = computeScores(currentData, profile, toggles);
 
-  // attach iso codes if missing: try to set from EXAMPLE_BASE name
+  // attach iso codes if missing: try to set from await loadCountryData name
   scored.forEach(s => {
-    const base = EXAMPLE_BASE.find(b => b.name.toLowerCase() === s.name.toLowerCase());
+    const base = await loadCountryData.find(b => b.name.toLowerCase() === s.name.toLowerCase());
     if(base) s.iso = base.iso;
     if(!s.iso) s.iso = s.name; // google will attempt to match
   });
